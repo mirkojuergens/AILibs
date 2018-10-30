@@ -1,6 +1,7 @@
 package jaicore.ml.intervaltree;
 
-import jaicore.ml.core.Interval;
+import org.apache.commons.math3.geometry.euclidean.oned.Interval;
+
 import jaicore.ml.intervaltree.util.RQPHelper;
 import jaicore.ml.intervaltree.util.RQPHelper.IntervalAndHeader;
 import weka.core.Instance;

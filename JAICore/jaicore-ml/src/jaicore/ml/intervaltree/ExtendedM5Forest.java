@@ -3,7 +3,8 @@ package jaicore.ml.intervaltree;
 import java.util.ArrayList;
 import java.util.List;
 
-import jaicore.ml.core.Interval;
+import org.apache.commons.math3.geometry.euclidean.oned.Interval;
+
 import jaicore.ml.intervaltree.aggregation.AggressiveAggregator;
 import jaicore.ml.intervaltree.aggregation.IntervalAggregator;
 import jaicore.ml.intervaltree.aggregation.QuantileAggregator;
@@ -49,8 +50,8 @@ public class ExtendedM5Forest extends Bagging implements RangeQueryPredictor {
 		for (int i = 0; i < this.m_Classifiers.length; i++) {
 			ExtendedM5Tree classifier = (ExtendedM5Tree) this.m_Classifiers[i];
 			Interval prediction = classifier.predictInterval(rangeQuery);
-			predictions.add(prediction.getLowerBound());
-			predictions.add(prediction.getUpperBound());
+			predictions.add(prediction.getInf());
+			predictions.add(prediction.getSup());
 
 		}
 		// aggregate them
@@ -64,8 +65,8 @@ public class ExtendedM5Forest extends Bagging implements RangeQueryPredictor {
 		for (int i = 0; i < this.m_Classifiers.length; i++) {
 			ExtendedM5Tree classifier = (ExtendedM5Tree) this.m_Classifiers[i];
 			Interval prediction = classifier.predictInterval(intervalAndHeader);
-			predictions.add(prediction.getLowerBound());
-			predictions.add(prediction.getUpperBound());
+			predictions.add(prediction.getInf());
+			predictions.add(prediction.getSup());
 
 		}
 		// aggregate them

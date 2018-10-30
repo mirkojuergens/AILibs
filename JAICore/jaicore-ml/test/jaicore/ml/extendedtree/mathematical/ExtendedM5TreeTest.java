@@ -142,8 +142,8 @@ public class ExtendedM5TreeTest {
 			// to 0), or, an upper/lower bound has been reached.
 			double[] randomStart = new double[randomStarts];
 			for (int i = 0; i < randomStarts; i++) {
-				randomStart[i] = Math.random() * (xInterval.getUpperBound() - xInterval.getLowerBound())
-						+ xInterval.getLowerBound();
+				randomStart[i] = Math.random() * (xInterval.getSup() - xInterval.getInf())
+						+ xInterval.getInf();
 			}
 			if (plusMinus == +1)
 				return Arrays.stream(randomStart).mapToObj(x -> singleOptimaRun(plusMinus, x, xInterval))
@@ -155,8 +155,8 @@ public class ExtendedM5TreeTest {
 		}
 
 		private double singleOptimaRun(int plusMinus, double startX, Interval range) {
-			double lower = range.getLowerBound();
-			double upper = range.getUpperBound();
+			double lower = range.getInf();
+			double upper = range.getSup();
 			double currentX = startX;
 			double currentGrad = grad.apply(currentX);
 			double nextX = currentX;
@@ -205,8 +205,8 @@ public class ExtendedM5TreeTest {
 			Interval rangeQuery = new Interval(Double.min(random1, random2), Double.max(random1, random2));
 			Interval minMaxInterval = new Interval(getMin(rangeQuery), getMax(rangeQuery));
 			Instance testInstance = new DenseInstance(2);
-			testInstance.setValue(0, rangeQuery.getLowerBound());
-			testInstance.setValue(1, rangeQuery.getUpperBound());
+			testInstance.setValue(0, rangeQuery.getInf());
+			testInstance.setValue(1, rangeQuery.getSup());
 			return new AbstractMap.SimpleEntry<Instance, Interval>(testInstance, minMaxInterval);
 		}
 	}

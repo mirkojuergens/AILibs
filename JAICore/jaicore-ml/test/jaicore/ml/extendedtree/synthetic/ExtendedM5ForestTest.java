@@ -96,8 +96,8 @@ public class ExtendedM5ForestTest {
 							// System.out.println(
 							// "Actual interval: " + actualInterval + ", predicted Interval " +
 							// predictedInterval);
-							predictedLowers.add(predictedInterval.getLowerBound());
-							predictedUppers.add(predictedInterval.getUpperBound());
+							predictedLowers.add(predictedInterval.getInf());
+							predictedUppers.add(predictedInterval.getSup());
 							actualLowers.add(lower);
 							actualUppers.add(upper);
 						}

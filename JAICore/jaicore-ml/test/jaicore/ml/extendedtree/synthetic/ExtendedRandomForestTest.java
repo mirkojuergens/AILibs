@@ -96,8 +96,8 @@ public class ExtendedRandomForestTest {
 							Interval predictedInterval = classifier[dataset_index][noise_index][seed]
 									.predictInterval(strippedInstance);
 
-							predictedLowers.add(predictedInterval.getLowerBound());
-							predictedUppers.add(predictedInterval.getUpperBound());
+							predictedLowers.add(predictedInterval.getInf());
+							predictedUppers.add(predictedInterval.getSup());
 							actualLowers.add(lower);
 							actualUppers.add(upper);
 						}

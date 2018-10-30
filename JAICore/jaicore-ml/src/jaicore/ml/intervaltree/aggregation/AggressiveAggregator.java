@@ -2,7 +2,7 @@ package jaicore.ml.intervaltree.aggregation;
 
 import java.util.List;
 
-import jaicore.ml.core.Interval;
+import org.apache.commons.math3.geometry.euclidean.oned.Interval;
 
 /**
  * An {@link IntervalAggregator} that makes predictions using the minimum of the

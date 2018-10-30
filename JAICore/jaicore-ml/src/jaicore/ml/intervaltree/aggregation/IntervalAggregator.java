@@ -3,7 +3,7 @@ package jaicore.ml.intervaltree.aggregation;
 import java.io.Serializable;
 import java.util.List;
 
-import jaicore.ml.core.Interval;
+import org.apache.commons.math3.geometry.euclidean.oned.Interval;
 
 /**
  * An IntervalAggeregator can aggregate from a list of intervals, more precisely
