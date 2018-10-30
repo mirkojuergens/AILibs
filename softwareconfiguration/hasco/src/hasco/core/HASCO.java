@@ -92,16 +92,12 @@ public class HASCO<ISearch, N, A, V extends Comparable<V>> implements SoftwareCo
 	private final TimeRecordingEvaluationWrapper<V> timeGrabbingEvaluationWrapper;
 	private HASCOSolutionCandidate<V> bestRecognizedSolution;
 	
-	/* storage for performance samples */
-	private final PerformanceKnowledgeBase performanceKnowledgeBase;
 
 	public HASCO(RefinementConfiguredSoftwareConfigurationProblem<V> configurationProblem, IHASCOPlanningGraphGeneratorDeriver<N, A> planningGraphGeneratorDeriver,
 			IGraphSearchFactory<ISearch, ?, N, A, V, ?, ?> searchFactory, AlgorithmProblemTransformer<GraphSearchProblemInput<N, A, V>, ISearch> searchProblemTransformer) {
 		super();
 		if (configurationProblem == null)
 			throw new IllegalArgumentException("Cannot work with configuration problem NULL");
-		this.performanceKnowledgeBase = new PerformanceKnowledgeBase();
-		this.registerListener(new PerformanceSampleListener(performanceKnowledgeBase, "test"));
 		this.configurationProblem = configurationProblem;
 		this.planningGraphGeneratorDeriver = planningGraphGeneratorDeriver;
 		this.searchFactory = searchFactory;

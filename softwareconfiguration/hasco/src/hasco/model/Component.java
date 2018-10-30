@@ -9,36 +9,19 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jaicore.basic.sets.PartialOrderedSet;
 
 public class Component {
+	
 	private final String name;
 	private final Collection<String> providedInterfaces = new ArrayList<>();
 	private final LinkedHashMap<String, String> requiredInterfaces = new LinkedHashMap<>();
 	private final PartialOrderedSet<Parameter> parameters = new PartialOrderedSet<>();
 	private final Collection<Dependency> dependencies = new ArrayList<>();
 
-//<<<<<<< HEAD
-//	public Component(final String name) {
-//		super();
-//		this.name = name;
-//		this.getProvidedInterfaces().add(this.name);
-//	}
-//
-//	public Component(final String name, final TreeMap<String, String> requiredInterfaces, final Collection<String> providedInterfaces, final List<Parameter> parameters, final Collection<Dependency> dependencies) {
-//		this(name);
-//		this.requiredInterfaces.putAll(requiredInterfaces);
-//		this.providedInterfaces.addAll(providedInterfaces);
-//		if (!this.providedInterfaces.contains(name)) {
-//			this.providedInterfaces.add(name);
-//		}
-//
-//		parameters.forEach(param -> this.addParameter(param));
-//=======
-//	@JsonCreator
+
 	public Component(@JsonProperty("name") final String name) {
 		super();
 		this.name = name;
@@ -53,10 +36,9 @@ public class Component {
 		this(name);
 		this.requiredInterfaces.putAll(requiredInterfaces);
 		this.providedInterfaces.addAll(providedInterfaces);
-		parameters.forEach(param -> this.addParameter(param));
+		parameters.forEach(this::addParameter);
 		if(dependencies!=null)
-//>>>>>>> master
-		this.dependencies.addAll(dependencies);
+			this.dependencies.addAll(dependencies);
 	}
 
 	public String getName() {
@@ -75,18 +57,10 @@ public class Component {
 		return this.parameters;
 	}
 
-//<<<<<<< HEAD
 	public Parameter getParameterWithName(final String paramName) {
 		Optional<Parameter> param = this.parameters.stream().filter(p -> p.getName().equals(paramName)).findFirst();
 		if (!param.isPresent()) {
 			throw new IllegalArgumentException("Component " + this.name + " has no parameter with name \"" + paramName + "\"");
-//=======
-//	public Parameter getParameter(final String paramName) {
-//		Optional<Parameter> param = this.parameters.stream().filter(p -> p.getName().equals(paramName)).findFirst();
-//		if (!param.isPresent()) {
-//			throw new IllegalArgumentException(
-//					"Component " + this.name + " has no parameter with name \"" + paramName + "\"");
-//>>>>>>> master
 		}
 		return param.get();
 	}
@@ -100,28 +74,11 @@ public class Component {
 	}
 
 	public void addParameter(final Parameter param) {
-//<<<<<<< HEAD
 		assert !this.parameters.stream().filter(p -> p.getName().equals(param.getName())).findAny().isPresent() : "Component " + this.name + " already has parameter with name " + param.getName();
 		this.parameters.add(param);
 	}
 
 	public void addDependency(final Dependency dependency) {
-
-		/* check whether this dependency is coherent with the current partial order on the parameters */
-//=======
-//		assert !this.parameters.stream().filter(p -> p.getName().equals(param.getName())).findAny()
-//				.isPresent() : "Component " + this.name + " already has parameter with name " + param.getName();
-//		this.parameters.add(param);
-//	}
-//	
-//	
-//	public void addDependency(final Dependency dependency) {
-//
-//		/*
-//		 * check whether this dependency is coherent with the current partial order on
-//		 * the parameters
-//		 */
-//>>>>>>> master
 		Collection<Parameter> paramsInPremise = new HashSet<>();
 		dependency.getPremise().forEach(c -> c.forEach(i -> paramsInPremise.add(i.getX())));
 		Collection<Parameter> paramsInConclusion = new HashSet<>();

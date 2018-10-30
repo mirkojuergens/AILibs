@@ -7,10 +7,11 @@ import jaicore.search.model.probleminputs.GraphSearchProblemInput;
 
 public class HASCOFactory<ISearch, N, A, V extends Comparable<V>> implements SoftwareConfigurationAlgorithmFactory<RefinementConfiguredSoftwareConfigurationProblem<V>, HASCORunReport<V>, V> {
 
-	private RefinementConfiguredSoftwareConfigurationProblem<V> problem;
-	private IHASCOPlanningGraphGeneratorDeriver<N, A> planningGraphGeneratorDeriver;
-	private IGraphSearchFactory<ISearch, ?, N, A, V, ?, ?> searchFactory;
-	private AlgorithmProblemTransformer<GraphSearchProblemInput<N, A, V>, ISearch> searchProblemTransformer;
+	protected RefinementConfiguredSoftwareConfigurationProblem<V> problem;
+	protected IHASCOPlanningGraphGeneratorDeriver<N, A> planningGraphGeneratorDeriver;
+	protected IGraphSearchFactory<ISearch, ?, N, A, V, ?, ?> searchFactory;
+	protected AlgorithmProblemTransformer<GraphSearchProblemInput<N, A, V>, ISearch> searchProblemTransformer;
+	
 	private boolean visualizationEnabled;
 
 	@Override

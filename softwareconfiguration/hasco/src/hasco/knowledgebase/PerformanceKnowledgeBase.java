@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -99,7 +100,6 @@ public class PerformanceKnowledgeBase {
 		}
 		// TODO Test this
 		List<ComponentInstance> componentInstances = Util.getComponentInstancesOfComposition(componentInstance);
-		ArrayList<Attribute> allAttributes = new ArrayList<Attribute>();
 		for (ComponentInstance ci : componentInstances) {
 			if (!performanceInstancesIndividualComponents.get(benchmarkName).containsKey(ci.getComponent().getName())) {
 				// System.out.println("Creating new Instances Object");
@@ -507,6 +507,10 @@ public class PerformanceKnowledgeBase {
 		return 0;
 	}
 
+	public List<Parameter> deriveAllParameters(List<Component> allComponents) {
+		return allComponents.stream().flatMap(c -> c.getParameters().stream()).collect(Collectors.toList());
+	}
+
 	/**
 	 * Trains a RQP on the current Composition-Performance-Data and returns it
 	 * 
@@ -520,16 +524,82 @@ public class PerformanceKnowledgeBase {
 			throws Exception {
 		Instances samples = getPerformanceSamples(benchmarkName, composition);
 
-		// One hot encoding
-		Filter nomialToBinary = new NominalToBinary();
-		nomialToBinary.setInputFormat(samples);
-		Instances encodedData = Filter.useFilter(samples, nomialToBinary);
+		Instances preprocessed = preprocessForRPQ(samples);
 
 		ExtendedRandomForest rqp = new ExtendedRandomForest();
-		rqp.buildClassifier(encodedData);
+		rqp.buildClassifier(preprocessed);
 
 		return rqp;
 
+	}
+
+	/**
+	 * Preprocesses precise data points using one-hot-encoding on the categorical
+	 * attributes.
+	 * 
+	 * @param samples
+	 * @return
+	 * @throws Exception
+	 */
+	private static Instances preprocessForRPQ(Instances samples) throws Exception {
+		Filter nomialToBinary = new NominalToBinary();
+		nomialToBinary.setInputFormat(samples);
+		return Filter.useFilter(samples, nomialToBinary);
+	}
+
+	/**
+	 * Derives the number of attributes that are needed to convert a precise data
+	 * point into a range query. That is,
+	 * 
+	 * every (precise) numeric attribute will yield 2 attributes in the range query
+	 * (lower + upper bound)
+	 * 
+	 * every (precise) categorical attribute will yield n attributes in the range
+	 * query (where n is the number of categorical features in the domain)
+	 * 
+	 * @param sample
+	 * @return the number of attributes in a range query
+	 */
+	public int deriveNumAttributesForRangeQuery(List<Parameter> sample) {
+		int sum = 0;
+		for (Parameter param : sample) {
+			if (param.isNumeric()) {
+				sum += 2;
+			} else if (param.isCategorical()) {
+				int n = ((CategoricalParameterDomain) param.getDefaultDomain()).getValues().length;
+				sum += n;
+			}
+		}
+		return sum;
+	}
+
+	/**
+	 * Derives the attribute index in a range query for the concrete parameter e.g.
+	 * if the pipeline has 2 parameters A (numeric) and B (categorical with 3
+	 * values). Then, the index of parameter B is 2, since a range-query would look
+	 * as follows: [a_min, a_max, b_1, b_2, b_3] (where b is one hot encoded)
+	 * 
+	 * @param params
+	 *            the sorted list of parameters
+	 * @param indexedParameter
+	 * @return the starting index of the parameter in a range query
+	 */
+	public int getStartIndexForParameterInRangeQuery(List<Parameter> params, Parameter indexedParameter) {
+		int index = 0;
+		for (Parameter param : params) {
+			if (param.equals(indexedParameter)) {
+				return index;
+			}
+			if (param.isNumeric()) {
+				// lower + upper
+				index += 2;
+			} else if (param.isCategorical()) {
+				// we need n attributes for one hot encoding
+				int n = ((CategoricalParameterDomain) param.getDefaultDomain()).getValues().length;
+				index += n;
+			}
+		}
+		throw new IllegalStateException("The indexed parameter was not a part of the parameters!");
 	}
 
 	/**
