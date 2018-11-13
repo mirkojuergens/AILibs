@@ -15,7 +15,7 @@ import jaicore.search.problemtransformers.GraphSearchProblemInputToGeneralEvalua
 
 public class HASCOViaFDAndBestFirstWithRQPFactory extends HASCOFactory<GeneralEvaluatedTraversalTree<TFDNode, String, Double>, TFDNode, String, Double>{
 
-	private PerformanceKnowledgeBase performanceKnowledgeBase;
+	private PerformanceKnowledgeBase performanceKnowledgeBase = new PerformanceKnowledgeBase();
 	
 	private RangeQueryBasedNodeEvaluator<TFDNode, String> rangeQueryBasedNodeEvaluator = new RangeQueryBasedNodeEvaluator<>(performanceKnowledgeBase);
 	
@@ -30,11 +30,10 @@ public class HASCOViaFDAndBestFirstWithRQPFactory extends HASCOFactory<GeneralEv
 
 	@Override
 	public HASCO<GeneralEvaluatedTraversalTree<TFDNode, String, Double>, TFDNode, String, Double> getAlgorithm() {
-		 HASCO<GeneralEvaluatedTraversalTree<TFDNode, String, Double>, TFDNode, String, Double> hasco =  super.getAlgorithm();
+		 HASCO<GeneralEvaluatedTraversalTree<TFDNode, String, Double>, TFDNode, String, Double> hasco =  new HASCOViaFDAndBestFirstWithRQP(problem, searchProblemTransformer, rangeQueryBasedNodeEvaluator);
 		 hasco.registerListener(new PerformanceSampleListener(performanceKnowledgeBase, "test"));
 		 rangeQueryBasedNodeEvaluator.setComponents(problem.getComponents());
 		 rangeQueryBasedNodeEvaluator.setPlanningGraphDeriver(planningGraphGeneratorDeriver);
-		 rangeQueryBasedNodeEvaluator.setInitState(hasco.getPlanningProblem().getCorePlanningProblem().getInit());
 		 return hasco;
 	}
 	

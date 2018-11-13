@@ -68,7 +68,7 @@ public class HASCO<ISearch, N, A, V extends Comparable<V>> implements SoftwareCo
 	/* problem and algorithm setup */
 	private final RefinementConfiguredSoftwareConfigurationProblem<V> configurationProblem;
 	private final RefinementConfiguredSoftwareConfigurationProblem<V> refactoredConfigurationProblem;
-	private final Collection<Component> components;
+	protected final Collection<Component> components;
 	private final IHASCOPlanningGraphGeneratorDeriver<N, A> planningGraphGeneratorDeriver;
 	private final AlgorithmProblemTransformer<GraphSearchProblemInput<N, A, V>, ISearch> searchProblemTransformer;
 	private HASCOConfig config = ConfigCache.getOrCreate(HASCOConfig.class);

@@ -24,6 +24,7 @@ public class PerformanceSampleListener {
 
 	public PerformanceSampleListener(PerformanceKnowledgeBase perfromanceKnowledgeBase, String benchmarkName) {
 		this.performanceKnowledgeBase = perfromanceKnowledgeBase;
+		this.benchmarkName = benchmarkName;
 	}
 
 	@Subscribe

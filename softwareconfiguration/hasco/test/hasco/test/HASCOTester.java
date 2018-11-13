@@ -60,7 +60,7 @@ public abstract class HASCOTester<ISearch, N, A>
 		Collection<Pair<HASCO<ISearch, N, A, Double>, Integer>> hascoObjects = new ArrayList<>();
 		hascoObjects.add(new Pair<>(getHASCOForSimpleProblem(), 6));
 		hascoObjects.add(new Pair<>(getHASCOForDifficultProblem(), -1));
-		hascoObjects.add(new Pair<>(getHASCOForProblemWithDependencies(), 12));
+		hascoObjects.add(new Pair<>(getHASCOForProblemWithDependencies(), 17));
 		return hascoObjects;
 	}
 

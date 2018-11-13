@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,6 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.ProtectedProperties;
-import weka.filters.Filter;
-import weka.filters.supervised.attribute.NominalToBinary;
 
 /**
  * Knowledge base that manages observed performance behavior
@@ -152,8 +151,6 @@ public class PerformanceKnowledgeBase {
 		for (int i = 0; i < instances.numAttributes() - 1; i++) {
 			Attribute attr = instances.attribute(i);
 			Parameter param = values.get(i).getLeft();
-			// System.out.println("Adding vlaue " + values.get(i).getRight() + " for
-			// Parameter " + param);
 			if (param.isCategorical()) {
 				String value = values.get(i).getRight();
 				instance.setValue(attr, value);
@@ -486,7 +483,10 @@ public class PerformanceKnowledgeBase {
 
 	public Instances getPerformanceSamples(String benchmarkName, ComponentInstance composition) {
 		String identifier = Util.getComponentNamesOfComposition(composition);
-		return this.performanceInstancesByIdentifier.get(benchmarkName).get(identifier);
+		if (this.performanceInstancesByIdentifier.get(benchmarkName) != null)
+			return this.performanceInstancesByIdentifier.get(benchmarkName).get(identifier);
+		else
+			return null;
 	}
 
 	public Instances getPerformanceSamplesForIndividualComponent(String benchmarkName, Component component) {
@@ -522,10 +522,21 @@ public class PerformanceKnowledgeBase {
 	 */
 	public RangeQueryPredictor getTrainedRQPForComposition(String benchmarkName, ComponentInstance composition)
 			throws Exception {
+
+		if (composition == null)
+			return null;
+
 		Instances samples = getPerformanceSamples(benchmarkName, composition);
 
+	//	System.out.println("-----\nAll samples are:\n" + samples + "\n--\nfor componentInstance " + composition);
+
+		// we dont' have enough data to make a prediction
+		// this shouldn't be a problem as we can use a random-completer instead
+		if (samples == null)
+			return null;
 		Instances preprocessed = preprocessForRPQ(samples);
 
+	//	System.out.println("--\nPreprocessed instances are:\n" + preprocessed);
 		ExtendedRandomForest rqp = new ExtendedRandomForest();
 		rqp.buildClassifier(preprocessed);
 
@@ -538,13 +549,86 @@ public class PerformanceKnowledgeBase {
 	 * attributes.
 	 * 
 	 * @param samples
-	 * @return
+	 *            the dataset that should be preprocessed
+	 * @return a preprocessed dataset (that has one hot encoding)
 	 * @throws Exception
 	 */
 	private static Instances preprocessForRPQ(Instances samples) throws Exception {
-		Filter nomialToBinary = new NominalToBinary();
-		nomialToBinary.setInputFormat(samples);
-		return Filter.useFilter(samples, nomialToBinary);
+		// get an instances object that has one hot encododed attributes in the header
+		Instances header = getHeaderInstanceForPreprocessedSamples(samples);
+		for (Instance instance : samples) {
+			Instance preprocessedInstance = new DenseInstance(header.numAttributes());
+			for (int i = 0; i < samples.numAttributes(); i++) {
+				Attribute attr = instance.attribute(i);
+				if (attr.isNumeric()) {
+					// don't encode anything here
+					preprocessedInstance.setValue(computeIndexForAttributeInPP(samples, i), instance.value(i));
+				}
+				if (attr.isNominal()) {
+					// one hot encoding!
+					String value = instance.stringValue(i);
+					// starting attribute index in the preprocessed instance
+					// e.g. if we have the instance [1.0, a, 4.6] where the second attribute can
+					// have the values {a, b, c} then, the starting index for the second attribute
+					// is 1, whereas the starting index for the third attribute is 4.
+					int startingIndex = computeIndexForAttributeInPP(samples, i);
+					// actual one hot encoding
+					Enumeration<Object> nominalValues = attr.enumerateValues();
+					// iterate over the set {a, b, c}
+					while (nominalValues.hasMoreElements()) {
+						Object nextValue = nominalValues.nextElement();
+						if (value.equals(nextValue)) {
+							preprocessedInstance.setValue(startingIndex, 1.0);
+						} else {
+							preprocessedInstance.setValue(startingIndex, 0.0);
+						}
+						startingIndex++;
+					}
+				}
+			}
+			header.add(preprocessedInstance);
+		}
+		header.setClassIndex(header.numAttributes()-1);
+		return header;
+	}
+
+	/**
+	 * Computes a header instances object from the given instance. That is, it will
+	 * create the correct header information for the one hot encoding.
+	 * 
+	 * @param instance
+	 * @return the header with one hot attributes
+	 */
+	private static Instances getHeaderInstanceForPreprocessedSamples(Instances instance) {
+		ArrayList<Attribute> pAttributes = new ArrayList<>();
+		for (int i = 0; i < instance.numAttributes(); i++) {
+			Attribute attr = instance.attribute(i);
+			if (attr.isNominal()) {
+				Enumeration<Object> attrEnum = attr.enumerateValues();
+				while (attrEnum.hasMoreElements()) {
+					Object possibleValue = attrEnum.nextElement();
+					pAttributes.add(new Attribute("one_hot_attr_" + attr.name() + "_index_" + possibleValue, false));
+				}
+			}
+			if (attr.isNumeric()) {
+				pAttributes.add(attr);
+			}
+		}
+		return new Instances(instance.relationName(), pAttributes, instance.size());
+	}
+
+	private static int computeIndexForAttributeInPP(Instances instances, int attrIndex) {
+		int index = 0;
+		for (int i = 0; i < attrIndex; i++) {
+			Attribute attr = instances.attribute(i);
+			if (attr.isNumeric()) {
+				index++;
+			} else {
+				// assuming one-hot
+				index += attr.numValues();
+			}
+		}
+		return index;
 	}
 
 	/**

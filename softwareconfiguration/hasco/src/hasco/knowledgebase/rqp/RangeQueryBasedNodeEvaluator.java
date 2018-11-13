@@ -3,7 +3,6 @@ package hasco.knowledgebase.rqp;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.math3.geometry.euclidean.oned.Interval;
 import org.slf4j.Logger;
@@ -14,15 +13,15 @@ import hasco.knowledgebase.PerformanceKnowledgeBase;
 import hasco.model.CategoricalParameterDomain;
 import hasco.model.Component;
 import hasco.model.ComponentInstance;
-import hasco.model.NumericParameterDomain;
 import hasco.model.Parameter;
 import jaicore.basic.sets.SetUtil;
 import jaicore.logic.fol.structure.Monom;
 import jaicore.ml.intervaltree.RangeQueryPredictor;
 import jaicore.planning.graphgenerators.IPlanningGraphGeneratorDeriver;
+import jaicore.planning.graphgenerators.task.tfd.TFDNode;
+import jaicore.planning.graphgenerators.task.tfd.TFDNodeUtil;
 import jaicore.search.algorithms.standard.bestfirst.nodeevaluation.INodeEvaluator;
 import jaicore.search.model.travesaltree.Node;
-import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 
@@ -31,7 +30,7 @@ import weka.core.Instance;
  * 
  * @author elppa
  *
- * @param <T>
+ * @param <T> type of the node used e.g. @link
  * @param <A>
  */
 public class RangeQueryBasedNodeEvaluator<T, A> implements INodeEvaluator<T, Double> {
@@ -56,13 +55,19 @@ public class RangeQueryBasedNodeEvaluator<T, A> implements INodeEvaluator<T, Dou
 
 	@Override
 	public Double f(Node<T, ?> node) throws Exception {
-
+		
+		TFDNode tfdNode = (TFDNode) node.getPoint();
 		// Getting the pipeline node
-		ComponentInstance instance = Util.getComponentInstanceForNode(planningGraphDeriver, components, initState, node,
-				"RQP", true);
-
+		ComponentInstance instance = Util.getComponentInstanceForNode(planningGraphDeriver, components, tfdNode.getState(), node,
+				"solution", false);
 		// Getting the RQP for this pipeline
 		RangeQueryPredictor rqp = performanceKnowledgeBase.getTrainedRQPForComposition("test", instance);
+
+		// the performance database told us that there isn't enough data to make a
+		// prediction, thus we ask the randomcompleter instead
+		if (rqp == null) {
+			return null;
+		}
 		logger.debug("RangeQuery requested for {}", instance);
 
 		// resolving of the range query
@@ -82,7 +87,7 @@ public class RangeQueryBasedNodeEvaluator<T, A> implements INodeEvaluator<T, Dou
 	 * 
 	 * @return
 	 */
-	final Instance deriveRangeQueryFromSuccessors(List<Component> allComponents, ComponentInstance solution) {
+	private final Instance deriveRangeQueryFromSuccessors(List<Component> allComponents, ComponentInstance solution) {
 		// sort the list
 		Collections.sort(allComponents, (c1, c2) -> c1.getName().compareTo(c2.getName()));
 		// calculate the size of the range query (each parameter gets 2 values)

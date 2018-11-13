@@ -1,23 +1,30 @@
 package hasco.variants.forwarddecomposition;
 
-import java.util.function.Predicate;
-
 import hasco.core.RefinementConfiguredSoftwareConfigurationProblem;
+import hasco.knowledgebase.rqp.RangeQueryBasedNodeEvaluator;
+import jaicore.basic.algorithm.AlgorithmInitializedEvent;
+import jaicore.basic.algorithm.AlgorithmProblemTransformer;
 import jaicore.planning.graphgenerators.task.tfd.TFDNode;
-import jaicore.search.algorithms.standard.bestfirst.nodeevaluation.INodeEvaluator;
-import jaicore.search.problemtransformers.GraphSearchProblemInputToGeneralEvaluatedTraversalTreeViaRDFS;
+import jaicore.search.model.probleminputs.GeneralEvaluatedTraversalTree;
+import jaicore.search.model.probleminputs.GraphSearchProblemInput;
 
-public class HASCOViaFDAndBestFirstWithRQP extends HASCOViaFDAndBestFirst<Double>{
+public class HASCOViaFDAndBestFirstWithRQP extends HASCOViaFDAndBestFirst<Double> {
 
-	public HASCOViaFDAndBestFirstWithRQP(RefinementConfiguredSoftwareConfigurationProblem<Double> configurationProblem, int numSamples, int seed, int timeoutForSingleCompletionEvaluationInMS,
-			int timeoutForNodeEvaluationInMS) {
-		this(configurationProblem, null, numSamples, seed, timeoutForSingleCompletionEvaluationInMS, timeoutForNodeEvaluationInMS, n -> null);
+	protected RangeQueryBasedNodeEvaluator<TFDNode, ?> nodeEvaluator;
+
+	public HASCOViaFDAndBestFirstWithRQP(RefinementConfiguredSoftwareConfigurationProblem<Double> configurationProblem,
+			AlgorithmProblemTransformer<GraphSearchProblemInput<TFDNode, String, Double>, GeneralEvaluatedTraversalTree<TFDNode, String, Double>> searchProblemTransformer,
+			RangeQueryBasedNodeEvaluator<TFDNode, ?> nodeEvaluator) {
+		super(configurationProblem, searchProblemTransformer);
+		this.nodeEvaluator = nodeEvaluator;
 	}
 
-	public HASCOViaFDAndBestFirstWithRQP(RefinementConfiguredSoftwareConfigurationProblem<Double> configurationProblem, Predicate<TFDNode> prioritingPredicate, int numSamples, int seed, int timeoutForSingleCompletionEvaluationInMS,
-			int timeoutForNodeEvaluationInMS, INodeEvaluator<TFDNode, Double> preferredNodeEvaluator) {
-		super(configurationProblem, new GraphSearchProblemInputToGeneralEvaluatedTraversalTreeViaRDFS<>(preferredNodeEvaluator, prioritingPredicate, seed, numSamples,
-				timeoutForSingleCompletionEvaluationInMS, timeoutForNodeEvaluationInMS));
-	}	
+	@Override
+	public AlgorithmInitializedEvent init() {
+		AlgorithmInitializedEvent aiEvent = super.init();
+		nodeEvaluator.setInitState(this.getPlanningProblem().getCorePlanningProblem().getInit());
+		return aiEvent;
+	}
+
 	
 }
