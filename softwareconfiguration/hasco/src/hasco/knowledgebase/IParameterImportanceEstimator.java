@@ -7,9 +7,11 @@ import hasco.model.Component;
 import hasco.model.ComponentInstance;
 
 public interface IParameterImportanceEstimator {
-	
+
 	/**
-	 * Extracts the parameters of a composition that reach the given threshold w.r.t. importance
+	 * Extracts the parameters of a composition that reach the given threshold
+	 * w.r.t. importance
+	 * 
 	 * @param composition
 	 * @param importanceThreshold
 	 * @param sizeOfLargestSubsetsToConsider
@@ -17,14 +19,29 @@ public interface IParameterImportanceEstimator {
 	 * @return
 	 * @throws Exception
 	 */
-	public Set<String> extractImportantParameters(ComponentInstance composition, double importanceThreshold,
-			int sizeOfLargestSubsetsToConsider, boolean recompute) throws Exception;
-	
+	public Set<String> extractImportantParameters(ComponentInstance composition, boolean recompute) throws Exception;
+
 	/**
 	 * Computes importance values for an individual component
+	 * 
 	 * @param component
 	 * @return
 	 */
 	public Map<String, Double> computeImportanceForSingleComponent(Component component);
+
+	/**
+	 * Checks whether the estimator is ready to estimate parameter importance for
+	 * the composition
+	 * 
+	 * @param composition
+	 * @return true if the estimator is ready, false otherwise
+	 */
+	public boolean readyToEstimateImportance(ComponentInstance composition);
+	
+	/**
+	 * Set the performance knowledge base used for parameter importance estimation
+	 * @param performanceKB
+	 */
+	public void setPerformanceKnowledgeBase(PerformanceKnowledgeBase performanceKB);
 
 }
